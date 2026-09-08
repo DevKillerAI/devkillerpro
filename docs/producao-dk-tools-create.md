@@ -60,4 +60,4 @@ O build e o teste de autenticação locais não equivalem a uma homologação de
 - Repositório: https://github.com/DevKillerAI/devkillerpro
 - Supabase: https://ocfdbuslxrbliyvvwylf.supabase.co
 - O conector GitHub desta sessão confirmou acesso somente de leitura (push: false); o repositório informa tamanho zero.
-- Ainda faltam acesso de escrita ao repositório, projeto Vercel e configuração protegida de autenticação/banco e host persistente do gerador. A URL Supabase não substitui essas configurações.
+- O Git local confirmou permissão de envio via dry-run. Ainda faltam projeto Vercel e configuração protegida de autenticação/banco e host persistente do gerador. A URL Supabase não substitui essas configurações.
