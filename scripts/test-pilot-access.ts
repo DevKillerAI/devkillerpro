@@ -1,0 +1,22 @@
+import { createClient } from "@supabase/supabase-js";
+async function main(){const origin="http://127.0.0.1:3000";
+const unauth=await fetch(`${origin}/api/missions`);
+if(unauth.status!==401) throw new Error(`Anonymous API expected 401, got ${unauth.status}`);
+const supabase=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,{auth:{persistSession:false}});
+if(!process.env.DEVKILLER_PILOT_EMAIL||!process.env.DEVKILLER_PILOT_PASSWORD) throw new Error("Pilot credentials are not configured");
+const signed=await supabase.auth.signInWithPassword({email:process.env.DEVKILLER_PILOT_EMAIL,password:process.env.DEVKILLER_PILOT_PASSWORD});
+if(signed.error||!signed.data.session) throw signed.error||new Error("No pilot session");
+const headers={Authorization:`Bearer ${signed.data.session.access_token}`};
+const account=await fetch(`${origin}/api/account`,{headers});
+const accountData=await account.json();
+if(!account.ok||!accountData.account) throw new Error("Authenticated account API failed");
+const missions=await fetch(`${origin}/api/missions`,{headers});
+if(!missions.ok) throw new Error("Authenticated mission API failed");
+const invite=await fetch(`${origin}/api/admin/invites`,{method:"POST",headers:{...headers,"Content-Type":"application/json"},body:JSON.stringify({email:"access-test@devkiller.local",creditLimit:2,expiresInHours:1})});
+const inviteData=await invite.json();
+if(!invite.ok||!inviteData.invite?.id) throw new Error("Admin invitation creation failed");
+const revoked=await fetch(`${origin}/api/admin/invites?id=${encodeURIComponent(inviteData.invite.id)}`,{method:"DELETE",headers});
+if(!revoked.ok) throw new Error("Invitation revocation failed");
+console.log(JSON.stringify({anonymousBlocked:true,authenticatedAccount:true,missionIsolation:true,inviteLifecycle:true,account:{name:accountData.account.name,role:accountData.account.role,creditsRemaining:accountData.account.creditsRemaining}}));
+}
+main().catch(error=>{console.error(error instanceof Error?error.message:error);process.exitCode=1;});

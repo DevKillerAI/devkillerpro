@@ -1,0 +1,21 @@
+node_modules
+.next
+.next-dev
+.git
+.env*
+.devkiller
+.runtime
+artifacts
+docs
+tests
+dk_generator_v2_backup_phase0.sql
+*.xlsx
+*.tsbuildinfo
+scratch
+DevKiller_War_Room_v0.1
+DevKiller-Role-Emblems
+RAG materiais
+
+research
+sites
+.tmp

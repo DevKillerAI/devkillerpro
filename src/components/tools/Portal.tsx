@@ -1,0 +1,27 @@
+'use client';
+import {useEffect,useState} from 'react';
+import Link from 'next/link';
+import {ArrowUpRight,Search,Sparkles,LogIn,Zap,LockKeyhole,Heart} from 'lucide-react';
+import {categories,label,tools, type Locale,type Category,type Tool} from '@/lib/tools/registry';
+import ToolWorkspace from './ToolWorkspace';
+import './portal.css';
+import PlatformHeader from './PlatformHeader';
+import PlatformFooter from './PlatformFooter';
+import './fluid.css';
+import './refined.css';
+import Brand from './Brand';
+import ToolCatalog,{CategoryTiles} from './ToolCatalog';
+import CreateDemo from './CreateDemo';
+import HomeTools from './HomeTools';
+import './create-demo.css';
+import './aurora-preview.css';
+import './reference.css';
+export default function Portal({tool,category,view='catalog'}:{tool?:Tool;category?:Category;view?:'catalog'|'support'|'projects'}){
+ const [locale,setLocale]=useState<Locale>('en');const [query,setQuery]=useState('');const [selected,setSelected]=useState<Category|''>(category||'');
+ useEffect(()=>{let saved:string|null=null;try{saved=localStorage.getItem('dk-language');}catch{}const detected=navigator.languages.map(x=>x.split('-')[0]).find(x=>x==='pt'||x==='en');setLocale(saved==='pt'||saved==='en'?saved:detected==='pt'?'pt':'en');},[]);
+ const t=(en:string,pt:string)=>locale==='pt'?pt:en;
+ const change=(next:Locale)=>{setLocale(next);try{localStorage.setItem('dk-language',next);}catch{}};
+ return <div className="dk-portal" lang={locale==='pt'?'pt-BR':'en'}><PlatformHeader locale={locale} onLocale={change}/>
+ <main className="dk-main">{tool?<ToolWorkspace key={tool.id} tool={tool} locale={locale}/>:view==='support'?<section className="dk-panel"><h1>{t('Support the DK ecosystem.','Apoie o ecossistema DK.')}</h1><p>{t('DK Tools are free to use. Supporting them is optional. App building with DK Create has separate pricing and usage limits.','As ferramentas DK são gratuitas. O apoio é opcional. A criação de aplicativos com DK Create tem preços e limites próprios.')}</p><p>{t('A payment destination has not been configured yet.','Um destino para pagamentos ainda não foi configurado.')}</p></section>:view==='projects'?<LocalProjects locale={locale}/>:<><section className="dk-hero"><div><div className="dk-eyebrow">{t('Small tasks. Big ideas.','Pequenas tarefas. Grandes ideias.')}</div><h1>{t('Solve it now.','Resolva agora.')}<br/><span className="dk-gradient">{t('Build what’s next.','Crie o que vem depois.')}</span></h1><p>{t('Free tools to bring your ideas to life. No account to get started.','Ferramentas gratuitas para dar forma às suas ideias. Sem cadastro para começar.')}</p><div className="dk-hero-benefits"><div><Zap size={22}/><span><strong>{t('Fast','Rápido')}</strong><small>{t('Getting things done.','Resolva e siga em frente.')}</small></span></div><div><LockKeyhole size={22}/><span><strong>{t('No signup needed','Sem cadastro')}</strong><small>{t('Start instantly.','Comece na hora.')}</small></span></div><div><Heart size={22}/><span><strong>{t('Built for creators','Para quem cria')}</strong><small>{t('From quick edits to big ideas.','De ajustes a grandes ideias.')}</small></span></div></div></div><CreateDemo locale={locale}/></section><label className="dk-search"><Search size={20}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={t('What would you like to do today?','O que você precisa fazer hoje?')} aria-label={t('Search tools','Buscar ferramentas')}/></label>{category?<ToolCatalog locale={locale} selected={category} query={query}/>:<HomeTools locale={locale} query={query}/>}<section className="dk-create-banner"><div><span className="dk-eyebrow">DK CREATE</span><h2>{t('Your idea could become an app.','Sua ideia pode virar um aplicativo.')}</h2><p>{t('Prepare your assets here. Take your project further with DevKiller.','Prepare seus materiais aqui. Leve o projeto adiante com o DevKiller.')}</p></div><Link className="dk-build" href="/create"><Sparkles size={18}/>{t('Build an app','Criar aplicativo')}<ArrowUpRight size={18}/></Link></section></>}</main><PlatformFooter locale={locale}/></div>;
+}
+function LocalProjects({locale}:{locale:Locale}){const [storageKey,setStorageKey]=useState('');const [items,setItems]=useState<Array<{id:string;title:string;tool:string;data:string}>>([]);useEffect(()=>{let active=true;void fetch('/api/auth/session',{cache:'no-store'}).then(r=>r.json()).then(session=>{if(!active)return;if(!session.user?.id){window.location.assign('/tools?signin=/projects');return;}const key='dk-tool-projects:'+session.user.id;setStorageKey(key);try{setItems(JSON.parse(localStorage.getItem(key)||'[]'));}catch{}}).catch(()=>{});return()=>{active=false;};},[]);return <section><h1>{locale==='en'?'My projects':'Meus projetos'}</h1><p>{locale==='en'?'Saved on this browser. Export your work to keep a backup.':'Salvos neste navegador. Exporte seu trabalho para manter uma cópia.'}</p><div className="dk-grid">{items.map(item=><article className="dk-panel" key={item.id}><h3>{item.title}</h3><Link href={`/tools/${item.tool}?draft=${encodeURIComponent(item.id)}`}>{locale==='en'?'Open':'Abrir'}</Link><button className="dk-button" onClick={()=>{const next=items.filter(x=>x.id!==item.id);try{localStorage.setItem(storageKey,JSON.stringify(next));setItems(next);}catch{}}}>{locale==='en'?'Delete':'Excluir'}</button></article>)}</div>{!items.length&&<p>{locale==='en'?'No saved projects yet.':'Nenhum projeto salvo ainda.'}</p>}</section>;}

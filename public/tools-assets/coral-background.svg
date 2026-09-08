@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600" fill="none">
+  <defs>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1500" y2="1300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff738b" stop-opacity=".28"/>
+      <stop offset=".5" stop-color="#ffb3b5" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#ff7e96" stop-opacity=".22"/>
+    </linearGradient>
+  </defs>
+  <path d="M-190 650C-170 400 50 383 118 245C189 100 103 84 25 163L-190 323Z" fill="url(#ribbon)"/>
+  <path d="M-90 400C110 236 271 121 535 82C765 48 933-22 1026-157" stroke="white" stroke-opacity=".42"/>
+  <path d="M1130-130C1138 96 1411 167 1660-26L1700 590C1519 402 1496 403 1392 390C1196 365 1050 438 919 502C1119 270 885 72 1130-130Z" fill="url(#ribbon)"/>
+  <path d="M1200 477C1389 381 1511 329 1675 447" stroke="white" stroke-opacity=".38"/>
+  <path d="M-190 1265C73 1079-34 924 41 823C96 748 252 781 309 719C192 957 284 1186-190 1376Z" fill="url(#ribbon)"/>
+  <path d="M-82 1120C135 918 244 982 472 1104C694 1222 915 1041 1156 1094C1362 1140 1447 1005 1660 902L1687 1642H-82Z" fill="url(#ribbon)"/>
+  <path d="M-86 1183C174 937 253 1107 487 1171C774 1249 958 1093 1174 1173C1374 1247 1527 1092 1668 1071" stroke="white" stroke-opacity=".48"/>
+</svg>

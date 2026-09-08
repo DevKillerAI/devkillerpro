@@ -1,0 +1,9 @@
+FROM devkiller-generator-v2:1
+USER root
+WORKDIR /opt/generator-v2
+RUN npm install --ignore-scripts --no-audit --no-fund --save-exact @supabase/supabase-js@2.112.4
+COPY compile.cjs /opt/generator-v2/compile.cjs
+COPY workbench.cjs /opt/generator-v2/workbench.cjs
+COPY workbench-database.cjs /opt/generator-v2/workbench-database.cjs
+USER pwuser
+ENTRYPOINT ["node", "/opt/generator-v2/workbench.cjs"]

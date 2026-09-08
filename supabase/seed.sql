@@ -1,0 +1,1 @@
+-- Intentionally empty. Production-like mission data must never be seeded.

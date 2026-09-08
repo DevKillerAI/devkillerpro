@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.json","compilerOptions":{"incremental":false},"include":["src/components/tools/**/*.tsx","src/lib/tools/**/*.ts","src/types/tools.d.ts","scripts/tools-site-entry.tsx","scripts/tools-link.tsx"],"exclude":["node_modules"]}

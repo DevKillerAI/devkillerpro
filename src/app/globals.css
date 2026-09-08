@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F4F6FA;
+  --foreground: #1E293B;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Stable gutters prevent width changes when a panel starts scrolling. */
+html { scrollbar-gutter: stable; }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #FF4B7270 transparent;
+}
+[class*="overflow-y-auto"], [class*="overflow-auto"] {
+  scrollbar-gutter: stable;
+  overflow-anchor: none;
+}
+
+/* Subtle branded scrollbars; keep scrolling discoverable and accessible. */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FF4B7270;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4B72;
+}
+
+/* Clean Soft Cards */
+.soft-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 10px 30px -5px rgba(24, 39, 75, 0.05), 0 0 1px 1px rgba(24, 39, 75, 0.02);
+  border-radius: 1.5rem;
+}
+
+.element-edit-popover { animation: editor-popover-in 160ms ease-out; }
+@keyframes editor-popover-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

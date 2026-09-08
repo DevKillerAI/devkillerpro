@@ -1,0 +1,35 @@
+# Optional web preview only. This is not the V2 execution deployment.
+# The supported local V2 stack runs web + worker on the host via npm run local:start.
+# The host worker invokes the reviewed Docker runner with bounded permissions.
+# No Docker socket is exposed to this web container. Generation readiness therefore
+# fails closed inside this profile; existing source/deliveries can still be reviewed.
+services:
+  web:
+    profiles: [web-preview]
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Pass --env-file .env.local when building this profile}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Pass --env-file .env.local when building this profile}
+    image: devkiller-local-web:latest
+    init: true
+    restart: unless-stopped
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@supabase_db_dk_war_room:5432/postgres
+      DEVKILLER_BACKGROUND_JOBS: "false"
+      DEVKILLER_READ_ONLY: "true"
+      SUPABASE_INTERNAL_URL: http://supabase_kong_dk_war_room:8000
+    ports:
+      - "127.0.0.1:3100:3000"
+    volumes:
+      - ./.devkiller:/app/.devkiller:ro
+    networks: [local]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 2g
+    cpus: 2
+networks:
+  local:
+    external: true
+    name: devkiller-local

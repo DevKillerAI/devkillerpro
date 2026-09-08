@@ -1,0 +1,1 @@
+OCR runtime: tesseract.js 7.0.0 and installed tesseract.js-core. Models: https://github.com/tesseract-ocr/tessdata_fast (eng.traineddata, por.traineddata), downloaded 2026-09-08.

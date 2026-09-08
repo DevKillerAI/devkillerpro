@@ -1,0 +1,3 @@
+import * as ort from './ort.wasm.min.mjs';
+ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;ort.env.wasm.wasmPaths=new URL('.',import.meta.url).href;
+self.onmessage=async({data})=>{let session;try{self.postMessage({progress:'loading'});session=await ort.InferenceSession.create(new URL('./u2netp.onnx',import.meta.url).href,{executionProviders:['wasm'],graphOptimizationLevel:'all'});self.postMessage({progress:'removing'});const output=await session.run({[session.inputNames[0]]:new ort.Tensor('float32',data.input,[1,3,320,320])});const mask=Float32Array.from(output[session.outputNames[0]].data);self.postMessage({mask},[mask.buffer]);}catch(error){self.postMessage({error:String(error)});}finally{await session?.release();}};

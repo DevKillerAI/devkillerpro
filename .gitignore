@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.next-dev/
+.env*
+!.env.example
+!.env.production.example
+*.tsbuildinfo
+.devkiller/
+.runtime/
+.tmp/
+artifacts/
+scratch/
+supabase/.temp/
+supabase/.branches/
+*_backup_*.sql
