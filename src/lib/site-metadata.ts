@@ -1,0 +1,4 @@
+import type {Metadata} from 'next';
+export const siteOrigin='https://devkillerpro.vercel.app';
+export const siteDescription='Free online tools for images, PDFs, audio, video and SVG. Turn your next idea into an app with DK Create. AI tools and app creation have separate plans.';
+export function pageMetadata(title:string,description:string,path:string,index=true):Metadata{return {title:{absolute:title.includes('DevKiller')?title:title+' | DevKiller'},description,alternates:{canonical:siteOrigin+path},robots:{index,follow:index},openGraph:{type:'website',siteName:'DevKiller',title,description,url:siteOrigin+path,images:[{url:siteOrigin+'/opengraph-image',width:1200,height:630,alt:'DevKiller — DK Tools and DK Create'}]},twitter:{card:'summary_large_image',title,description,images:[siteOrigin+'/opengraph-image']}};}

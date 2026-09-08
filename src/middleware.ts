@@ -9,7 +9,7 @@ export function readOnlyRequestBlocked(mode: string | undefined, method: string,
 export async function middleware(request: NextRequest) {
   const path=request.nextUrl.pathname;
   // Public tools execute locally. Generator and account APIs stay protected.
-  if(['GET','HEAD'].includes(request.method) && (['/','/tools','/support','/plans'].includes(path)||path.startsWith('/tools/')||path.startsWith('/tools-assets/'))) return NextResponse.next();
+  if(['GET','HEAD'].includes(request.method) && (['/','/tools','/support','/plans','/robots.txt','/sitemap.xml','/manifest.webmanifest','/opengraph-image'].includes(path)||path.startsWith('/tools/')||path.startsWith('/tools-assets/'))) return NextResponse.next();
   if (readOnlyRequestBlocked(process.env.DEVKILLER_READ_ONLY, request.method, path)) {
     return NextResponse.json({success:false,code:'READ_ONLY_DEPLOYMENT',error:'This deployment is for reviewing existing deliveries. Open the host V2 workspace to make changes.'},{status:403,headers:{'Cache-Control':'no-store'}});
   }

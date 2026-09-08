@@ -4,7 +4,8 @@ import {listPilotRuns} from '@/lib/server/generator/pilotStore';
 import {WORKBENCH_RUNTIME} from '@/lib/server/generator/workbenchContract';
 import {redirect} from 'next/navigation';
 export const dynamic='force-dynamic';
-export const metadata={title:'My projects | DevKiller',robots:{index:false,follow:false}};
+import {pageMetadata} from '@/lib/site-metadata';
+export const metadata=pageMetadata('My projects — DK Tools and DK Create','Your saved tool drafts and apps, together in your DevKiller account.','/projects',false);
 export default async function Page(){
  const access=await accessContext().catch(()=>null);
  if(!access)redirect('/tools?signin=/projects');
