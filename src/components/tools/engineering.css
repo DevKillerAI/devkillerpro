@@ -58,5 +58,14 @@ html body .dk-create-surface .max-w-3xl>div.space-y-4 { border:1px solid var(--d
 html body .dk-create-surface :is(input,textarea,select) { border-radius:7px; }
 html body .dk-create-surface .bg-rose-500 { background:var(--dk-accent)!important; }
 html body .dk-create-surface .shadow-sm { box-shadow:0 1px 3px #11142008; }
+html body .dk-plan-card,html body .dk-project-tile { border-radius:10px; border-color:var(--dk-line); box-shadow:none; }
+html body .dk-project-tile:hover { transform:none; box-shadow:none; border-color:#a5a9b4; }
+html body .dk-plan-highlight { border-color:var(--dk-accent); box-shadow:0 0 0 1px var(--dk-accent); }
+html body .dk-plan-price { font-variant-numeric:tabular-nums; }
+html body .dk-pricing-intro h1 { font-size:clamp(30px,3.5vw,44px); letter-spacing:-.04em; }
+html body .dk-workspace-modal { border:1px solid var(--dk-line); border-radius:12px; box-shadow:0 20px 70px #07090d26; }
+html body .dk-workspace-modal::backdrop { background:#07090d80; backdrop-filter:blur(2px); }
+html body .dk-workspace-modal>header { padding-bottom:16px; border-bottom:1px solid var(--dk-line); }
+html body .dk-workspace-modal :is(input,select,button,a):focus-visible { outline:2px solid var(--dk-focus); outline-offset:3px; }
 @media(max-width:650px) { html body .dk-main { padding-top:18px; } html body .dk-flow-card { padding:20px 16px; } html body .dk-portal .dk-tool-flow .dk-flow-steps { gap:12px; padding:10px; } html body .dk-flow-drop { min-height:210px; } html body .dk-flow-actions { flex-wrap:wrap; } }
 @media(prefers-reduced-motion:reduce) { html body .dk-portal *,html body .dk-create-surface * { scroll-behavior:auto; transition:none!important; } }
