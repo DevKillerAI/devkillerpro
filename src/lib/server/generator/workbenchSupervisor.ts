@@ -29,6 +29,7 @@ import {createBuildEvidenceManifest,issueVerifiedBuildCertificate,type Execution
 import {workbenchInstructionsFor} from './workbenchInstructions';
 import {prepareWorkbenchDatabase,inspectWorkbenchDatabasePrerequisites,assertWorkbenchMigrationContinuity,validateWorkbenchDatabaseSource,type WorkbenchDatabase} from './workbenchDatabase';
 import {SupabasePilotMigrationError} from './supabasePilotEnvironment';
+import {assertFullstackRelease} from './workbenchFullstackRelease';
 
 const hash=(v:string)=>createHash('sha256').update(v).digest('hex');
 function storedGrounding(value:unknown):WorkbenchGrounding|null{
@@ -328,6 +329,9 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
     snapshot=await patch(snapshot,'repair-1','Fix only these observed failures; preserve the brief and supported scope: '+JSON.stringify(report.checks.filter(c=>!c.passed)),candidatePaths);
     local=await verifyWithCompilerRepairs(snapshot);snapshot=local.snapshot;report=local.report;
   }
+
+  // Full-stack releases cannot bypass executed database or application checks.
+  if(fullstack)assertFullstackRelease(report);
 
   // Agile Lovable-style delivery: If the bundle successfully compiled (esbuild bundle exists)
   // and core platform gates passed (build, typecheck, secrets isolation), do not discard the

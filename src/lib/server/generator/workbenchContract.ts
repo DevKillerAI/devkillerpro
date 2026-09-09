@@ -132,7 +132,7 @@ export function assessWorkbenchCapabilities(brief: string, options: { managedIma
       'responsive.preview',
       'network.product-import',
       'media.local-upload',
-      ...(fullstackEnabled && (databaseRequired || authRequested) ? ['database.postgres', 'database.migrations', 'auth.supabase', 'auth.rbac'] : []),
+      ...(fullstackEnabled && (databaseRequired || authRequested) ? ['database.postgres', 'database.migrations', 'auth.supabase', 'authorization.owner'] : []),
       ...(managedImage&&managedImageAi?['ai.image.vision','ai.image.generate']:[]),
     ],
     deferred,
