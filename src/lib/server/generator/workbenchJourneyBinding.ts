@@ -9,7 +9,7 @@ export type JourneyBindingFinding={
   journey:string;
   step:number;
   testId:string;
-  reason:'missing-target'|'wrong-control-kind'|'accessible-name-is-not-visible-text'|'invalid-requirement-binding';
+  reason:'missing-target'|'wrong-control-kind'|'accessible-name-is-not-visible-text'|'invalid-requirement-binding'|'unresolved-id-placeholder';
   classification?: 'APPLICATION_DEFECT' | 'TEST_DEFECT' | 'UNKNOWN';
   isMandatory?: boolean;
 };
@@ -177,6 +177,9 @@ export function bindWorkbenchJourneysToSource(input:unknown,snapshot:GeneratorSn
         if(exact.length===1)target=exact[0];
       }
       if(!target){finding('missing-target','APPLICATION_DEFECT');continue;}
+      if(target.description.includes('${…}')&&/-placeholder$/.test(step.testId)){
+        finding('unresolved-id-placeholder','TEST_DEFECT');continue;
+      }
       if(!supports(target,step.action)){finding('wrong-control-kind','APPLICATION_DEFECT');continue;}
       if(step.action==='text'){
         const expected=normalize(step.value),visible=normalize(target.visible.join(' ')),accessible=normalize(target.attributes.get('aria-label')||'');

@@ -1,4 +1,5 @@
 import {assertContainerWorkspaceAccess} from './containerPreflight';
+import {stabilizeWorkbenchJourneyTargets} from './workbenchStableTargets';
 import {reviewedJourneys} from './reviewedJourneys';
 import {createHash,randomUUID} from 'node:crypto';
 import path from 'node:path';
@@ -288,6 +289,11 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
     return report;
   }
   async function verifyWithCompilerRepairs(current:GeneratorSnapshot) {
+    const stableTargets=stabilizeWorkbenchJourneyTargets(current,journeys);
+    if(stableTargets){
+      current=stableTargets.snapshot;journeys=stableTargets.journeys;
+      await appendPilotEvent(lease,'journey.targets-stabilized','Replaced invented UUID placeholders with stable test attributes. Every action and expected result is preserved.',{revision:current.revision,sourceHash:current.hash,changes:stableTargets.changes});
+    }
     let checked=await verify(current),repairs=0;
     while(checked.status==='failed'&&repairs<4) {
       const revision=`local-repair-${repairs+1}`;
