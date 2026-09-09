@@ -15,3 +15,9 @@ This is a separate app from the previously recovered Energy healing. The initial
 Local validation: repository typecheck and 15 targeted regression checks passed. Six server regression checks passed before the worker restarted. The previous placeholder-ID protection is retained. Backups and reviewed file hashes are under `/opt/devkiller-releases/client-contract-20260909`.
 
 Recovery reuses the exact failed candidate and provider history, with no new AI requests. Reviewed source-bound journeys exercise independent service creation/readback, profile persistence and appointment creation/readback. Public cross-account booking and provider administration remain declared capability gaps of the private runtime; this recovery does not claim those features are implemented.
+
+## Verified outcome
+
+The run is ready in the owner's project list at revision `local-repair-1`, hash `c961fa0d281eb6cf9f79d7d421646d21f642504b5bb6563cc90c32ff1d030638`. All 35 delivery checks passed. Usage stayed at 155177 micro-USD and two original provider calls. The real preview access exchange returned 303 then authenticated HTTP 200; anonymous access remained denied (403).
+
+The current reconciliation code had discarded the two model-reported private-runtime scope gaps because they were not in its deterministic list. A source-verified scope review restored these advisory gaps and marked the current run metadata partial without changing acceptance evidence, application code, database records or ready status. The immutable delivery artifact retains its original metadata; this review is recorded on the run. General gap reconciliation requires a separate correction; this recovery does not claim it was fixed.
