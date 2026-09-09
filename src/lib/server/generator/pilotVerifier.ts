@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, mkdir, writeFile, readFile, rm, copyFile, lstat } from 'node:fs/promises';
+import {containerIdentityArgs} from './containerIdentity';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createGeneratorSnapshot, type GeneratorSnapshot, type GeneratorSourceFile } from './versionedEdits';
@@ -108,7 +109,7 @@ export async function verifyBriefboardPilot(args: {
       const name = `dk-v2-${mode}-${randomUUID()}`; names.push(name);
       const environment=mode==='browser'?args.database?.environment:undefined;
       const command = ['run', '--pull=never', '--name', name, '--label', 'devkiller.generator-v2=true', '--network='+(environment?.network??'none'),
-        '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges', '--memory=768m', '--cpus=1', '--pids-limit=128',
+        '--read-only', ...containerIdentityArgs(), '--cap-drop=ALL', '--security-opt=no-new-privileges', '--memory=768m', '--cpus=1', '--pids-limit=128',
         '--shm-size=128m', '--tmpfs', '/tmp:rw,nosuid,nodev,size=128m',
         '--mount', `type=bind,source=${input},target=/candidate,readonly`,
         '--mount', `type=bind,source=${output},target=/output`];

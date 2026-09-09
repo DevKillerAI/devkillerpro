@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
     return {beforeFiles:[{source:'/api/generator/:path*',destination:upstream.origin+'/api/generator/:path*'}],afterFiles:[],fallback:[]};
   },
   async headers() {
+    const previewDomain=process.env.NEXT_PUBLIC_DK_PREVIEW_DOMAIN;
+    if(previewDomain&&!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(previewDomain))throw new Error('Invalid preview domain.');
+    const previewSource=previewDomain?' https://*.'+previewDomain:'';
     // Allow the configured authentication service, not arbitrary remote hosts.
     const authOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
       ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
@@ -34,7 +37,7 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; media-src 'self' blob:; connect-src ${connectSrc}; frame-src 'self' blob: http://127.0.0.1:* http://*.localhost:*; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'` },
+          { key: "Content-Security-Policy", value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; media-src 'self' blob:; connect-src ${connectSrc}; frame-src 'self' blob: http://127.0.0.1:* http://*.localhost:*${previewSource}; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'` },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

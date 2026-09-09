@@ -34,6 +34,9 @@ html body .dk-flow-card .dk-button:disabled { opacity:.45; cursor:not-allowed; }
 html body .dk-flow-fields { gap:20px; }
 html body .dk-flow-card .dk-field { border-radius:7px; border-color:#d2d5dd; background:#fff; min-height:42px; box-shadow:none; }
 html body .dk-flow-card .dk-option { gap:8px; font-size:12px; font-weight:600; }
+.dk-quality-control { display:flex; align-items:center; gap:16px; min-height:42px; }
+.dk-quality-control input { flex:1; min-width:0; accent-color:var(--dk-ink); }
+.dk-quality-control output { min-width:52px; padding:7px 8px; border:1px solid var(--dk-line); border-radius:6px; text-align:center; font-variant-numeric:tabular-nums; }
 html body .dk-format-choices>div { gap:8px; }
 html body .dk-format-choices label { border-radius:8px; padding:12px 14px; border-color:var(--dk-line); }
 html body .dk-format-choices label:has(input:checked) { border-color:#111420; background:#f2f3f6; box-shadow:none; }

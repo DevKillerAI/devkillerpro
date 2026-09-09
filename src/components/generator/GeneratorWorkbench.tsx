@@ -11,6 +11,7 @@ import {pilotPreviewDocument,PILOT_PREVIEW_SANDBOX,validPilotStorage,acceptsPilo
 import type {PilotRun,PilotSavedSnapshot,PilotEvent} from '@/lib/server/generator/pilotStore';
 import type {PilotDelivery} from '@/lib/server/generator/pilotDelivery';
 import {useVisionBridge} from '@/lib/workspace/useVisionBridge';
+import {validPreviewAddress} from '@/lib/workspace/previewAddress';
 
 type Detail={run:PilotRun;events:PilotEvent[];snapshots:PilotSavedSnapshot[];delivery:PilotDelivery|null};
 type CapabilityGap={id:string;label:string;reason:string;fallback:string};
@@ -33,7 +34,7 @@ export function WorkbenchPreview({detail,standalone=false}:{detail:Detail;standa
       void fetch('/api/generator/workbench/preview',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,
         body:JSON.stringify({runId,sourceHash:detail.delivery.candidate.sourceHash})}).then(async response=>{
         const data=await response.json();if(!response.ok)throw new Error(data.error);
-        if(typeof data.url!=='string'||!/^http:\/\/dk-v2-[a-f0-9]{24}\.localhost:[0-9]{4,5}\/$/.test(data.url))throw new Error('Invalid isolated preview address.');
+        if(!validPreviewAddress(data.url))throw new Error('Invalid isolated preview address.');
         if(!controller.signal.aborted)setPrepared({key,url:data.url});
       }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Preview unavailable.');});
       return()=>controller.abort();

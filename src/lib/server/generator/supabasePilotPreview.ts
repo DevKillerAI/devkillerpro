@@ -13,6 +13,8 @@ import { sameCandidate } from './releaseGate';
 import type { GenerationContract, GeneratorIdentity } from './contract';
 import { workbenchEnvironmentIdentity, validateWorkbenchDatabaseSource } from './workbenchDatabase';
 import { WORKBENCH_VERIFIER } from './workbenchContract';
+import {containerIdentityArgs} from './containerIdentity';
+import {remotePreviewAddress} from './remotePreview';
 
 const exec = promisify(execFile);
 const sha=(text:string)=>createHash('sha256').update(text).digest('hex');
@@ -74,7 +76,7 @@ async function start(snapshot:GeneratorSnapshot,delivery:PilotDelivery,key:strin
     // Docker Desktop does not publish ports on internal-only bridges. A separate loopback
     // preview bridge serves trusted static/proxy code; the generated app never runs in Node.
     await docker(['create','--pull=never','--name',name,'--label',`devkiller.v2.preview=${key}`,'--network',environment.previewNetwork,
-      '--read-only','--user=1000:1000','--cap-drop=ALL','--security-opt=no-new-privileges','--memory=192m','--cpus=.5','--pids-limit=64',
+      '--read-only',...containerIdentityArgs(),'--cap-drop=ALL','--security-opt=no-new-privileges','--memory=192m','--cpus=.5','--pids-limit=64',
       '--tmpfs','/tmp:rw,nosuid,nodev,size=64m','--mount',`type=bind,source=${compiled},target=/candidate,readonly`,
       '--mount',`type=bind,source=${config},target=/config,readonly`,'-p','127.0.0.1::3000',delivery.runtimeImageId!,'serve']);
     await docker(['network','connect',environment.network,name]);
@@ -87,7 +89,7 @@ async function start(snapshot:GeneratorSnapshot,delivery:PilotDelivery,key:strin
   const hostname=`dk-v2-${key.slice(0,24)}.localhost`;
   const url=`http://${hostname}:${port}/`;
   for(let attempt=0;attempt<20;attempt++) {
-    try{const response=await fetch(`http://127.0.0.1:${port}/`,{headers:{Host:`${hostname}:${port}`},signal:AbortSignal.timeout(1500),redirect:'error'});if(response.ok)return {url,sourceHash:snapshot.hash};}catch{/* A just-started trusted HTTP server may still be binding. */}
+    try{const response=await fetch(`http://127.0.0.1:${port}/`,{headers:{Host:`${hostname}:${port}`},signal:AbortSignal.timeout(1500),redirect:'error'});if(response.ok)return {url:await remotePreviewAddress(key,url),sourceHash:snapshot.hash};}catch{/* A just-started trusted HTTP server may still be binding. */}
     await new Promise(resolve=>setTimeout(resolve,250));
   }
   throw new Error('The approved database preview did not become ready. Its bound container and data were preserved.');
