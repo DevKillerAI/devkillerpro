@@ -1,3 +1,6 @@
+import { selectProductBlueprint, type ProductBlueprintSelection } from '../../knowledge/productBlueprints';
+import { selectProductVisualReferences, type ProductVisualReference } from '../../knowledge/productVisualReferences';
+
 export type WorkbenchQualityPlan = Readonly<{
   version: 'workbench-quality-v1';
   domain: string;
@@ -7,6 +10,8 @@ export type WorkbenchQualityPlan = Readonly<{
   depthStandard: readonly string[];
   media: Readonly<{ requested: boolean; photographic: boolean; direction: string }>;
   avoid: readonly string[];
+  productBlueprint?: ProductBlueprintSelection;
+  visualReferences?: readonly ProductVisualReference[];
 }>;
 
 const normalize=(value:unknown)=>typeof value==='string'?value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase():'';
@@ -215,8 +220,10 @@ export function createWorkbenchQualityPlan(brief:string,briefingMode:'simple'|'d
     ] : []),
     ...(briefingMode==='detailed'?['Implement coherent secondary workflows and cross-feature state transitions explicitly requested by the detailed brief; do not leave decorative controls or dead navigation.']:[]),
   ];
+  const productBlueprint=selectProductBlueprint(brief);
+  const visualReferences=selectProductVisualReferences(productBlueprint.primary?.id);
   const visualRecipe=selectRecipe(profile.domain,text);
-  return {version:'workbench-quality-v1',domain:profile.domain,experienceShape:profile.experienceShape,artDirection:profile.artDirection,visualRecipe,depthStandard,
+  return {version:'workbench-quality-v1',domain:profile.domain,experienceShape:profile.experienceShape,artDirection:profile.artDirection,visualRecipe,depthStandard,productBlueprint,visualReferences,
     media:{requested:mediaRequested,photographic,direction:mediaRequested
       ? photographic
         ? 'Images are product content. Use only supplied, uploaded or genuinely generated image data. Never imitate a photograph with CSS circles, gradients, emoji or abstract geometry. If real media is not available yet, show a polished explicit empty-media state and keep the upload/generation path usable.'

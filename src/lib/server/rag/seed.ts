@@ -3,6 +3,7 @@ import { RELIABILITY_KNOWLEDGE } from './reliabilityKnowledge';
 import { DESIGN_TOKENS_KNOWLEDGE } from './designTokensKnowledge';
 import {DESIGN_QUALITY_RULES,DESIGN_GUIDANCE_VERSION} from '../../knowledge/designGuidance';
 import {GENERATOR_MATERIALS_KNOWLEDGE} from './generatorMaterials';
+import { PRODUCT_BLUEPRINT_KNOWLEDGE } from './productBlueprintKnowledge';
 
 type Seed = Omit<KnowledgeDocument, "contentHash" | "ingestedAt" | "embedding" | "embeddingModel">;
 
@@ -64,6 +65,7 @@ When a journey includes a reload step to verify persistence:
 };
 
 export const CERTIFIED_SEED: Seed[] = [
+  ...PRODUCT_BLUEPRINT_KNOWLEDGE,
   CANONICAL_CREATIVE_STUDIO_DOC,
   ...RELIABILITY_KNOWLEDGE,
   ...GENERATOR_MATERIALS_KNOWLEDGE,

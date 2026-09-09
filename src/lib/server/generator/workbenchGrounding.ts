@@ -63,7 +63,8 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
         : 'accessible responsive interface design tokens state validation error recovery']
     : [quality.domain, options.focus ?? '', 'React TypeScript atomic edits regression tests state validation'];
 
-  const queryString = [brief, ...context].join('\n').slice(0, 32000);
+  const product = quality.productBlueprint?.primary;
+  const queryString = [brief, ...(product ? [product.name, product.purpose] : []), ...context].join('\n').slice(0, 32000);
   const readiness=await retrieveKnowledge({query:queryString,tenantId:'devkiller',domains:['design','product','builder'],excludeTags:groundingExclusions(quality.domain),limit:6,missionId,useEmbeddings:false,signal:options.signal});
   if(readiness.candidateCount===0)throw new Error('The reviewed generation knowledge corpus is empty. Import and verify the RAG before starting a generation.');
   if(process.env.DEVKILLER_RAG_QUERY_EMBEDDINGS!=='true')return assembleWorkbenchGrounding(readiness,{phase});
