@@ -1,0 +1,62 @@
+/* Shared refinement: existing branding and page structure, quieter work surfaces. */
+:root { --dk-ink:#111420; --dk-muted:#606777; --dk-line:#dddfe5; --dk-accent:#ff5576; --dk-focus:#b42c4e; }
+html body .dk-portal { background:#f6f5f6!important; }
+html body .dk-main { max-width:1240px; padding-top:28px; }
+html body .dk-hero { gap:40px; padding:12px 0 32px; }
+html body .dk-hero h1 { letter-spacing:-.045em; line-height:1.08; }
+html body .dk-hero p { line-height:1.65; max-width:48ch; }
+html body .dk-gradient { background:none; -webkit-text-fill-color:var(--dk-accent); color:var(--dk-accent); }
+html body .dk-search { border:1px solid var(--dk-line); border-radius:10px; box-shadow:none; min-height:48px; background:#fff; }
+html body .dk-home-tools-grid { gap:10px; }
+html body .dk-home-tool { border:1px solid var(--dk-line); border-radius:10px; box-shadow:none; min-height:84px; padding:16px; background:#fff; transition:border-color 140ms,background 140ms; }
+html body .dk-home-tool:hover { transform:none; border-color:#a5a9b4; box-shadow:none; background:#fafafa; }
+html body .dk-home-copy strong { font-size:14px; line-height:1.4; }
+html body .dk-home-copy>span { font-size:12px; line-height:1.5; color:var(--dk-muted); }
+html body .dk-home-icon { width:36px; height:36px; border-radius:8px; }
+html body .dk-create-banner { background:var(--dk-ink); color:white; border:1px solid var(--dk-ink); border-radius:12px; box-shadow:none; padding:24px; }
+html body .dk-create-banner p { color:#c5c8d2; }
+html body .dk-create-banner .dk-eyebrow { color:#ff8fa4; }
+.dk-portal :is(button,a,input,select,textarea):focus-visible,.dk-create-surface :is(button,a,input,select,textarea):focus-visible { outline:2px solid var(--dk-focus); outline-offset:3px; }
+html body .dk-tool-flow { max-width:1000px; margin:0 auto; }
+html body .dk-portal .dk-tool-flow .dk-flow-heading { gap:8px; margin:20px auto; }
+html body .dk-portal .dk-tool-flow .dk-flow-heading h1 { font-size:clamp(27px,3vw,36px); letter-spacing:-.035em; }
+html body .dk-tool-flow .dk-eyebrow { display:none!important; }
+html body .dk-portal .dk-tool-flow .dk-flow-steps { border-radius:8px; border-color:var(--dk-line); background:transparent; padding:10px 18px; gap:24px; margin-bottom:20px; }
+html body .dk-flow-card { border:1px solid var(--dk-line); background:#fff; border-radius:12px; box-shadow:0 2px 5px #11142004; padding:28px; }
+html body .dk-flow-stage-title { font-size:18px; letter-spacing:-.02em; margin-bottom:22px; }
+html body .dk-flow-drop { min-height:230px; border-radius:8px; border-color:#bfc3cd; background:#fafafb; transition:background 140ms,border-color 140ms; }
+html body .dk-flow-drop.is-dragging { border-color:var(--dk-accent); background:#fff5f7; }
+html body .dk-flow-upload-icon { border-radius:10px; width:48px; height:48px; background:#eeeef2; color:#4d5568; }
+html body .dk-flow-card .dk-button { min-height:40px; border-radius:7px; padding:10px 16px; box-shadow:none; font-size:13px; transition:background 140ms,opacity 140ms; }
+html body .dk-portal .dk-flow-card .dk-primary { background:var(--dk-ink)!important; color:#fff!important; border:1px solid var(--dk-ink); }
+html body .dk-flow-card .dk-primary:hover { background:#2b3041; transform:none; }
+html body .dk-flow-card .dk-button:disabled { opacity:.45; cursor:not-allowed; }
+html body .dk-flow-fields { gap:20px; }
+html body .dk-flow-card .dk-field { border-radius:7px; border-color:#d2d5dd; background:#fff; min-height:42px; box-shadow:none; }
+html body .dk-flow-card .dk-option { gap:8px; font-size:12px; font-weight:600; }
+html body .dk-format-choices>div { gap:8px; }
+html body .dk-format-choices label { border-radius:8px; padding:12px 14px; border-color:var(--dk-line); }
+html body .dk-format-choices label:has(input:checked) { border-color:#111420; background:#f2f3f6; box-shadow:none; }
+html body .dk-flow-file-summary { border-radius:8px; background:#f5f6f8; padding:12px 16px; }
+html body .dk-flow-file-summary small,html body .dk-compression-report b { font-variant-numeric:tabular-nums; }
+html body .dk-flow-actions { gap:10px; margin-top:24px; }
+html body .dk-flow-secondary { gap:8px; padding-top:18px; }
+html body .dk-flow-secondary button { text-decoration:none; border:1px solid var(--dk-line); border-radius:6px; padding:8px 12px; color:#454d5e; }
+html body .dk-flow-secondary button:hover { background:#f2f3f6; }
+html body .dk-flow-success { width:36px; height:36px; margin-bottom:12px; }
+html body .dk-flow-progress span { background:var(--dk-accent); }
+html body .dk-compression-report { background:#f6f7f9; border-color:var(--dk-line); border-radius:8px; padding:18px; }
+html body .dk-tool-flow[data-category="image"] .dk-flow-input-preview { background:#f0f1f4; border:1px solid var(--dk-line); border-radius:8px; padding:16px; }
+html body .dk-tool-flow[data-category="audio"] :is(.dk-flow-input-preview,.dk-flow-result-item) audio { width:100%; max-width:100%; }
+html body .dk-tool-flow[data-category="pdf"] .dk-flow-files { border:1px solid var(--dk-line); border-radius:8px; padding:0 12px; }
+html body .dk-tool-flow[data-category="pdf"] .dk-flow-files li { padding:10px 0; border-bottom:1px solid var(--dk-line); }
+html body .dk-tool-flow[data-category="text"] textarea,html body .dk-tool-flow[data-category="svg"] textarea { font:13px/1.75 ui-monospace,Consolas,monospace; tab-size:2; min-height:260px; }
+html body .dk-create-surface { background:#f6f5f6!important; }
+html body .dk-create-toolbar { border:1px solid var(--dk-line); border-radius:8px; background:#fff!important; backdrop-filter:none; }
+html body .dk-create-surface .max-w-3xl>h1 { font-size:clamp(28px,3.2vw,40px); letter-spacing:-.04em; }
+html body .dk-create-surface .max-w-3xl>div.space-y-4 { border:1px solid var(--dk-line)!important; box-shadow:none!important; border-radius:12px!important; padding:24px; }
+html body .dk-create-surface :is(input,textarea,select) { border-radius:7px; }
+html body .dk-create-surface .bg-rose-500 { background:var(--dk-accent)!important; }
+html body .dk-create-surface .shadow-sm { box-shadow:0 1px 3px #11142008; }
+@media(max-width:650px) { html body .dk-main { padding-top:18px; } html body .dk-flow-card { padding:20px 16px; } html body .dk-portal .dk-tool-flow .dk-flow-steps { gap:12px; padding:10px; } html body .dk-flow-drop { min-height:210px; } html body .dk-flow-actions { flex-wrap:wrap; } }
+@media(prefers-reduced-motion:reduce) { html body .dk-portal *,html body .dk-create-surface * { scroll-behavior:auto; transition:none!important; } }
