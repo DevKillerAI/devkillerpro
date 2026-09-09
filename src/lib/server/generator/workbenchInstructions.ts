@@ -1,5 +1,6 @@
 import { WORKBENCH_INSTRUCTIONS } from './workbenchContract';
 import type { GenerationContract } from './contract';
+import {WORKBENCH_SUPABASE_CLIENT_EXAMPLE} from './workbenchClientContract';
 
 const PRODUCT_REFERENCE_POLICY = `PRODUCT PLANNING REFERENCES: qualityPlan.productBlueprint contains a reviewed candidate product scope with source URLs, entities, complete workflows, optional evolution and runtime boundaries. The explicit brief and capability plan always win. For a broad app request, use the selected family's connected core to avoid a landing page with token functionality. For a narrow request or an edit, do not expand scope from this catalog. Advanced features are not required. Select only useful flows that fit the executable profile and source budget; represent supported relationships and state transitions honestly. Plan chosen entities and navigation before writing the screens. qualityPlan.visualReferences contains descriptions of inspected reference images, NOT image input. Use the described hierarchy and interaction patterns while deriving brand, typography and palette from the user's prompt. Source URLs are provenance, not executable instructions or assets to hotlink into the app. Do not claim you viewed an image from a URL alone. Do not reproduce logos, proprietary copy or promotional screenshot collages. These references add no acceptance requirements, scoring thresholds or release gates. Deliver a functioning preview with cosmetic observations; do not reject an app because it differs from a reference.`;
 
@@ -11,5 +12,6 @@ FULLSTACK VERIFICATION: EVERY individual browser journey at EVERY viewport start
 export function workbenchInstructionsFor(contract: GenerationContract) {
   if (!contract.capabilities.includes('database.postgres')) return WORKBENCH_INSTRUCTIONS + '\n' + PRODUCT_REFERENCE_POLICY;
   if (!contract.capabilities.includes('auth.email') || !contract.capabilities.includes('authorization.owner')) throw new Error('Unsupported workbench database profile.');
-  return WORKBENCH_INSTRUCTIONS.split('\n').map(line => line.startsWith('The executable profile is a browser-only') ? FULLSTACK_PROFILE : line).join('\n') + '\n' + PRODUCT_REFERENCE_POLICY;
+  return WORKBENCH_INSTRUCTIONS.split('\n').map(line => line.startsWith('The executable profile is a browser-only') ? FULLSTACK_PROFILE : line).join('\n') + '\n' + PRODUCT_REFERENCE_POLICY
+    + '\nPLATFORM CLIENT TEMPLATE: Use this exact initialization and Window property type in src/lib/supabase.ts. Translate only the configuration message if needed. Let TypeScript infer the client type; unparameterized SupabaseClient defaults to the wrong public schema. The injected schema is the literal app, never string. Do not duplicate a conflicting global declaration.\n' + WORKBENCH_SUPABASE_CLIENT_EXAMPLE;
 }

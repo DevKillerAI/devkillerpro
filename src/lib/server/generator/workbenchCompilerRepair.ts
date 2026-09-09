@@ -1,9 +1,10 @@
 import { applyVersionedEdits, type GeneratorSnapshot } from './versionedEdits';
+import { repairWorkbenchClientTypes } from './workbenchClientRepair';
 import type { PilotVerification } from './pilotVerifier';
 
 export type WorkbenchCompilerRepair = Readonly<{
   snapshot: GeneratorSnapshot;
-  kind: 'missing-typed-arrow-parameter-close' | 'ref-strict-null-assertion' | 'missing-react-namespace-import' | 'react-children-namespace-repair' | 'type-cast-overlap-repair' | 'react-namespace-global-import' | 'supabase-client-initialization-repair';
+  kind: 'missing-typed-arrow-parameter-close' | 'ref-strict-null-assertion' | 'missing-react-namespace-import' | 'react-children-namespace-repair' | 'type-cast-overlap-repair' | 'react-namespace-global-import' | 'supabase-client-initialization-repair' | 'platform-supabase-types';
   path: string;
   line: number;
   column: number;
@@ -69,6 +70,8 @@ export function applyKnownWorkbenchCompilerRepair(
 
   // 2. TypeScript Semantic Repair: React namespace missing when using React.ChangeEvent / React.FC
   const tsDetails = report.checks.find(check => check.id === 'platform:typescript-typecheck' && !check.passed)?.details ?? '';
+  const clientRepair=repairWorkbenchClientTypes(base,tsDetails,newRevision);
+  if(clientRepair)return clientRepair;
   if (tsDetails.includes('TS2503: Cannot find namespace \'React\'')) {
     for (const file of base.files) {
       if ((file.path.endsWith('.tsx') || file.path.endsWith('.ts')) && file.content.includes('React.')) {

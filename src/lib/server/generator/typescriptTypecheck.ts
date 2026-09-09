@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import path from 'node:path';
 import type { GeneratorSourceFile } from './versionedEdits';
+import {WORKBENCH_SUPABASE_SETTINGS_TYPE} from './workbenchClientContract';
 
 export type TypecheckDiagnostic = { file: string; line: number; column: number; code: number; message: string };
 export type TypecheckReport = { status: 'passed' | 'failed'; diagnostics: TypecheckDiagnostic[]; totalErrors: number; durationMs: number };
@@ -17,7 +18,7 @@ export function typecheckGeneratorSource(files: readonly GeneratorSourceFile[]):
   }
   const declaration = normalize(path.join(root, 'platform-browser.d.ts'));
   fileMap.set(declaration, `declare module '*.css' {}
-interface Window { __DK_SUPABASE__?: { url: string; anonKey: string; schema: 'app'; storageKey: string } }
+interface Window { __DK_SUPABASE__?: ${WORKBENCH_SUPABASE_SETTINGS_TYPE} }
 `);
   const options: ts.CompilerOptions = {
     target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.ReactJSX,
