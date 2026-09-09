@@ -1,7 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planSupabasePilotSubnets, supabasePilotHostExclusions, assertSupabasePilotNetwork, isSupabasePilotSubnetCollision } from '../src/lib/server/generator/supabasePilotNetworks';
+import { planSupabasePilotSubnets, supabasePilotHostExclusions, supabasePilotLinuxHostExclusions, assertSupabasePilotNetwork, isSupabasePilotSubnetCollision } from '../src/lib/server/generator/supabasePilotNetworks';
+
+test('Linux inventory reserves policy routes, interface subnets and individual hosts', () => {
+  const excluded = supabasePilotLinuxHostExclusions([
+    { dst: 'default', gateway: '192.0.2.1' },
+    { dst: '10.240.0.0/24', table: 100 },
+    { dst: '10.240.1.2', type: 'local' },
+  ], [{ addr_info: [{ family: 'inet', local: '10.240.2.1', prefixlen: 24 }] }]);
+  assert.deepEqual(excluded, ['10.240.0.0/24', '10.240.1.2/32', '10.240.2.1/24']);
+  assert.deepEqual(planSupabasePilotSubnets(excluded, 1), ['10.240.1.16/28']);
+});
+
+test('Linux network inventory rejects missing, malformed and oversized evidence', () => {
+  const addresses = [{ addr_info: [{ family: 'inet', local: '192.0.2.2', prefixlen: 24 }] }];
+  for (const routes of [null, {}, [], [{}], [{ dst: 'invalid' }], Array(8193).fill({ dst: 'default' })])
+    assert.throws(() => supabasePilotLinuxHostExclusions(routes, addresses));
+  for (const interfaces of [null, [], [{}], [{ addr_info: [] }], [{ addr_info: [{ family: 'inet', local: '1.2.3.4', prefixlen: -1 }] }]])
+    assert.throws(() => supabasePilotLinuxHostExclusions([{ dst: 'default' }], interfaces));
+});
 
 test('pilot subnet allocation is bounded, deterministic, small and disjoint', () => {
   const selected = planSupabasePilotSubnets(['172.17.0.0/16', '192.168.0.0/16'], 6);

@@ -42,6 +42,28 @@ export function supabasePilotHostExclusions(routes: readonly string[], interface
   return [...new Set([...specific, ...interfaces])];
 }
 
+/** iproute2 JSON inventory, including policy-routing tables and host addresses. */
+export function supabasePilotLinuxHostExclusions(routes: unknown, interfaces: unknown): string[] {
+  if (!Array.isArray(routes) || !routes.length || !Array.isArray(interfaces) || !interfaces.length || routes.length + interfaces.length > 8192)
+    return unavailable('The Linux host route inventory is unavailable or exceeds its bound.');
+  const routeCidrs = routes.map(entry => {
+    if (!entry || typeof entry.dst !== 'string') return unavailable('The Linux host route inventory is invalid.');
+    return entry.dst === 'default' ? '0.0.0.0/0' : entry.dst.includes('/') ? entry.dst : `${entry.dst}/32`;
+  });
+  const addressCidrs: string[] = [];
+  for (const entry of interfaces) {
+    if (!entry || !Array.isArray(entry.addr_info)) return unavailable('The Linux interface inventory is invalid.');
+    for (const item of entry.addr_info) {
+      if (!item || item.family !== 'inet' || typeof item.local !== 'string' || !Number.isInteger(item.prefixlen) || item.prefixlen < 0 || item.prefixlen > 32)
+        return unavailable('The Linux interface address is invalid.');
+      addressCidrs.push(`${item.local}/${item.prefixlen}`);
+      if (routeCidrs.length + addressCidrs.length > 8192) return unavailable('The Linux host route inventory exceeds its bound.');
+    }
+  }
+  if (!addressCidrs.length) return unavailable('The Linux interface inventory is empty.');
+  return supabasePilotHostExclusions(routeCidrs, addressCidrs);
+}
+
 /** No fallback to public, link-local, VPN, LAN, or Docker-default address space. */
 export function planSupabasePilotSubnets(exclusions: readonly string[], count = 6): string[] {
   if (!Number.isSafeInteger(count) || count < 1 || count > 12 || exclusions.length > 16384) return unavailable('The pilot network allocation request exceeds its bound.');
@@ -81,6 +103,14 @@ async function inspectNetworks(signal?: AbortSignal): Promise<Network[]> {
 }
 
 async function inspectHostExclusions(signal?: AbortSignal): Promise<string[]> {
+  if (process.platform === 'linux') {
+    const options = { timeout: 15000, maxBuffer: 512 * 1024, signal };
+    const [routes, interfaces] = await Promise.all([
+      exec('ip', ['-j', '-4', 'route', 'show', 'table', 'all'], options),
+      exec('ip', ['-j', '-4', 'address', 'show'], options),
+    ]);
+    return supabasePilotLinuxHostExclusions(JSON.parse(routes.stdout), JSON.parse(interfaces.stdout));
+  }
   if (process.platform !== 'win32') return unavailable('Pilot subnet allocation requires the reviewed Windows host-route inspector.');
   // Fixed read-only command. Never interpolate generated identifiers or credentials.
   const command = "$ErrorActionPreference='Stop'; $pilotRoutes=@(Get-NetRoute -AddressFamily IPv4 -ErrorAction Stop | Select-Object -ExpandProperty DestinationPrefix); $pilotAddresses=@(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction Stop | ForEach-Object { $_.IPAddress + '/' + $_.PrefixLength }); ConvertTo-Json -Compress -InputObject @{routes=$pilotRoutes;interfaces=$pilotAddresses}";
@@ -92,6 +122,9 @@ async function inspectHostExclusions(signal?: AbortSignal): Promise<string[]> {
 }
 
 async function inspectDesktopExclusions(): Promise<string[]> {
+  // Native Linux Docker has no hidden Docker Desktop VM; its networks and
+  // all host routing tables are inspected separately before allocation.
+  if (process.platform === 'linux') return [];
   if (!process.env.APPDATA) return unavailable('Docker Desktop network settings are unavailable.');
   let contents: string;
   try { contents = await readFile(path.join(process.env.APPDATA, 'Docker', 'settings-store.json'), 'utf8'); }
