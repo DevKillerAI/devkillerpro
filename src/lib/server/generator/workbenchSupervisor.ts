@@ -1,3 +1,5 @@
+import {assertContainerWorkspaceAccess} from './containerPreflight';
+import {reviewedJourneys} from './reviewedJourneys';
 import {createHash,randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {assertWorkbenchContract,assessWorkbenchCapabilities,capabilityGapSchema,normalizeCapabilityGaps,parseWorkbenchBuild,reconcileWorkbenchGaps,workbenchBuildJsonSchema,workbenchPatchJsonSchema,WORKBENCH_INSTRUCTIONS,WORKBENCH_MAX_SOURCE_BYTES,WORKBENCH_MAX_SOURCE_LINES,WORKBENCH_VERIFIER,WORKBENCH_PROTOCOL_VERSION,workbenchJourneysSchema,type CapabilityGap} from './workbenchContract';
@@ -46,6 +48,7 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
   const run=loadedRun;
   const brief=assertWorkbenchContract(run.contract), runtime=await inspectWorkbenchRuntime(signal);if(!runtime.available)throw new Error(runtime.reason);
   const runtimeImageId=runtime.imageId;
+  await assertContainerWorkspaceAccess(runtimeImageId,signal);
   const contract=run.contract,runtimeDigest=hash(runtimeImageId+':'+WORKBENCH_VERIFIER);
   const fullstack=contract.capabilities.includes('database.postgres');
   if(fullstack){const prerequisites=await inspectWorkbenchDatabasePrerequisites(signal);if(!prerequisites.available)throw new Error(prerequisites.reason);}
@@ -56,13 +59,13 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
   let workingDetails:unknown=run.details;
   const edit=detail?.workbenchOperation?workbenchEditSchema.parse((({requestHash,operationId,...rest})=>rest)(detail.workbenchOperation as Record<string,unknown>)):null;
   const deterministicCompilerRecovery=detail?.deterministicCompilerRecovery&&typeof detail.deterministicCompilerRecovery==='object'&&!Array.isArray(detail.deterministicCompilerRecovery)
-    ? detail.deterministicCompilerRecovery as {baseRevision?:unknown;baseHash?:unknown}:null;
+    ? detail.deterministicCompilerRecovery as {baseRevision?:unknown;baseHash?:unknown;reviewedJourneys?:unknown}:null;
   const deterministicJourneyRecovery=detail?.deterministicJourneyRecovery&&typeof detail.deterministicJourneyRecovery==='object'&&!Array.isArray(detail.deterministicJourneyRecovery)
-    ? detail.deterministicJourneyRecovery as {baseRevision?:unknown;baseHash?:unknown}:null;
+    ? detail.deterministicJourneyRecovery as {baseRevision?:unknown;baseHash?:unknown;reviewedJourneys?:unknown}:null;
   const deterministicLocalRecovery=detail?.deterministicLocalRecovery&&typeof detail.deterministicLocalRecovery==='object'&&!Array.isArray(detail.deterministicLocalRecovery)
-    ? detail.deterministicLocalRecovery as {baseRevision?:unknown;baseHash?:unknown}:null;
+    ? detail.deterministicLocalRecovery as {baseRevision?:unknown;baseHash?:unknown;reviewedJourneys?:unknown}:null;
   const capabilityVerificationRecovery=detail?.capabilityVerificationRecovery&&typeof detail.capabilityVerificationRecovery==='object'&&!Array.isArray(detail.capabilityVerificationRecovery)
-    ? detail.capabilityVerificationRecovery as {baseRevision?:unknown;baseHash?:unknown}:null;
+    ? detail.capabilityVerificationRecovery as {baseRevision?:unknown;baseHash?:unknown;reviewedJourneys?:unknown}:null;
   const preservedRecovery=deterministicCompilerRecovery||deterministicJourneyRecovery||deterministicLocalRecovery||capabilityVerificationRecovery;
   if(run.status==='queued')await updatePilotState(lease,'planning',run.details);
   await appendPilotEvent(lease,'plan.confirmed',edit?'I will apply only your requested change, keeping the approved app available.'
@@ -145,7 +148,7 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
     const initial=await getPilotCall(run.runId,run.ownerId,'build-1');
     if(!initial?.result||initial.status!=='completed')throw new Error('Original behavior plan is unavailable.');
     const built=parseWorkbenchBuild(parsePilotOutput(initial.result));if(built.status==='needs_input')throw new Error('No original app.');
-    journeys=built.journeys;projectDescription=built.summary.replace(/\s+/g,' ').trim().slice(0,600);
+    journeys=deterministicLocalRecovery?.reviewedJourneys ? reviewedJourneys(deterministicLocalRecovery.reviewedJourneys,snapshot,built.journeys,acceptanceContract) : built.journeys;projectDescription=built.summary.replace(/\s+/g,' ').trim().slice(0,600);
     capabilityGaps=mergeGaps(capabilityPlan.deferred,reconcileWorkbenchGaps(capabilityPlan,built.capabilityGaps));
     deliveryMode=capabilityGaps.length?'partial':'complete';
     await appendPilotEvent(lease,'source.recovered','The exact failed candidate was recovered from immutable storage. Only compiler-guided corrections may change it.',{revision:snapshot.revision,sourceHash:snapshot.hash});
@@ -411,3 +414,6 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
   await updatePilotState(lease,'verifying',finalDetails);
   await writePilotDelivery(snapshot,delivery);await acceptPilotSnapshot(lease,candidate,evidence,allow);
 }
+
+
+

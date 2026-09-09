@@ -9,6 +9,7 @@ const ROOT='/candidate', OUT='/output';
 const CSP="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'; worker-src 'none'";
 const normalizedText = value => String(value).replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, ' ').replace(/\s+/g, ' ').trim();
 const matchesText = (observed, expected) => normalizedText(observed) === normalizedText(expected);
+const selectTarget = value => value.startsWith('label:') ? {label:value.slice(6)} : value;
 const matchesCount = (observed, expected) => observed === expected;
 function validateJourneys(journeys) {
   if(!Array.isArray(journeys)||journeys.length<1||journeys.length>4)throw new Error('Invalid journey count.');
@@ -130,7 +131,7 @@ async function main() {
             }
             if(s.action==='fill')await target.fill(s.value);
             else if(s.action==='click')await target.click();
-            else if(s.action==='select')await target.selectOption(s.value);
+            else if(s.action==='select')await target.selectOption(selectTarget(s.value));
             else if(s.action==='disabled') {
               const until=Date.now()+2200;
               while(!await target.isDisabled()&&Date.now()<until)await page.waitForTimeout(40);
@@ -172,5 +173,6 @@ async function main() {
   finally{if(database?.isUnavailable())report.unavailable=true;if(browser)await browser.close();await new Promise(r=>server.close(r));report.executedAt=new Date().toISOString();await fs.writeFile(path.join(OUT,'report.json'),JSON.stringify(report),{flag:'wx'});}
   if(report.failures.length)process.exitCode=1;
 }
-module.exports = { validateJourneys, matchesText, matchesCount, createAppServer };
+module.exports = { validateJourneys, matchesText, matchesCount, createAppServer, selectTarget };
 if(require.main===module)main().catch(e=>{console.error(String(e.message).slice(0,2000));process.exitCode=1;});
+

@@ -27,6 +27,7 @@ type WorkbenchProfile=Readonly<{
  * restaurant profile and quotation forms out of the finance profile.
  */
 const PROFILES:ReadonlyArray<WorkbenchProfile>=[
+  {domain:'client-operations',minimumScore:8,signals:[[/\b(?:crm|freelancers?|painel de clientes|client management|gestao de clientes|clientes e tarefas)\b/,10]],experienceShape:'An operational client workspace: compact navigation, aligned client rows, actionable task lists, contextual editing and a concise real-data overview. Keep forms in focused drawers or clearly separated edit surfaces.',artDirection:'Quiet professional operations interface. Match the requested brand; use a neutral reading surface, readable 14–16px body text, compact 24–32px section headings, aligned metadata and restrained coral only when requested. Make the empty workspace intentionally composed and immediately actionable.',avoid:['a giant centered form as the entire product','marketing heroes inside the working workspace','decorative metrics or charts without data','every row boxed into a floating card']},
   {domain:'education-school-climate',minimumScore:6,signals:[
     [/\b(?:escola|escolar|escolas|clima escolar|alunos?|estudantes?|professores?|pedagog(?:ia|ico|ica|os?)|turmas?|ensino|colegio|educacional)\b/,8],
     [/\b(?:escuta ativa|comunicacao nao violenta|cnv|mediacao|ocorrencias?|indisciplina|bullying|acolhimento|comunidade escolar|responsaveis)\b/,6],
@@ -176,6 +177,7 @@ const RECIPES:Record<string,ReadonlyArray<WorkbenchQualityPlan['visualRecipe']>>
     {id:'linear-workspace',composition:'Collapsible navigation sidebar on desktop, focused item board or list, and contextual detail inspector.',typography:'Snappy UI typography with keyboard shortcut badges.',palette:'Pitch-black canvas (#08090a), micro-borders (rgba(255,255,255,0.06)), and electric indigo/violet active states.',signature:'Use hairline dividers, glowing status dots and subtle hover highlights.'},
     {id:'focus-flow',composition:'Clean central task stream with category chips, progress ring/bar, and floating quick-capture bar.',typography:'Humanist sans with high-legibility checkbox rows and tabular counters.',palette:'Dark obsidian foundation with vibrant emerald completion feedback.',signature:'Use animated strike-throughs and tactile state pill indicators.'},
   ],
+  'client-operations':[{id:'client-operations-desk',composition:'A 220px navigation rail, compact page toolbar, short metric strip and main master/detail work surface. Mobile navigation collapses into accessible tabs. Client and task rows align title, metadata, status and actions.',typography:'System sans with 14–16px body, 12px metadata, 28px page headings and tabular figures; retain clear weight and contrast differences.',palette:'Two neutral surfaces, dark text, a single user-requested accent and semantic status colors with text labels.',signature:'Purposeful empty states with concise guidance and a real create action, subtle dividers and contextual detail drawers.'}],
   'general-product':[
 
     {id:'focused-tool',composition:'One primary workspace with secondary information progressively disclosed, not a landing page plus cards.',typography:'Clear functional hierarchy with one subject-specific display role.',palette:'Neutral foundation and an accent inferred from the audience and subject rather than DevKiller.',signature:'Turn one meaningful domain object or action into the recurring visual motif.'},
@@ -222,3 +224,4 @@ export function createWorkbenchQualityPlan(brief:string,briefingMode:'simple'|'d
       : 'Purposeful CSS or inline SVG illustration is allowed when it supports the chosen identity, but it must not pretend to be a real product or documentary image.'},
     avoid:[...profile.avoid,'DevKiller colors or shell styling copied into the generated product','the same radius, border and shadow on every region','large headings that crowd out the working interface']};
 }
+

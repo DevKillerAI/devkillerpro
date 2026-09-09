@@ -63,10 +63,13 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
     : [quality.domain, options.focus ?? '', 'React TypeScript atomic edits regression tests state validation'];
 
   const queryString = [brief, ...context].join('\n').slice(0, 32000);
+  const readiness=await retrieveKnowledge({query:queryString,tenantId:'devkiller',domains:['design','product','builder'],excludeTags:['platform-only'],limit:6,missionId,useEmbeddings:false,signal:options.signal});
+  if(readiness.candidateCount===0)throw new Error('The reviewed generation knowledge corpus is empty. Import and verify the RAG before starting a generation.');
+  if(process.env.DEVKILLER_RAG_QUERY_EMBEDDINGS!=='true')return assembleWorkbenchGrounding(readiness,{phase});
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   let queryEmbedding: number[] | undefined;
 
-  if (apiKey) {
+  if (apiKey && process.env.DEVKILLER_RAG_QUERY_EMBEDDINGS === 'true') {
     try {
       const embRes = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
@@ -107,4 +110,6 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
 
   return assembleWorkbenchGrounding(trace, { phase });
 }
+
+
 

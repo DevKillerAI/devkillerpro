@@ -1,3 +1,4 @@
+import {isInfrastructureFailure} from './infrastructureFailure';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash, randomUUID } from 'node:crypto';
@@ -129,7 +130,7 @@ export async function verifyBriefboardPilot(args: {
     const build = await runContainer('compile', source, compiled);
     if (!build.completed) {
       const error = 'error' in build ? build.error : undefined;
-      const codeFailure = typeof error?.code === 'number' && error.code !== 125 && !error.killed;
+      const codeFailure = typeof error?.code === 'number' && error.code !== 125 && !error.killed && !isInfrastructureFailure(error.stderr || error.message || '');
       const details = `${error?.stderr || error?.message || 'Compiler unavailable'}`.slice(-6000);
       result.status = codeFailure ? 'failed' : 'unavailable';
       if (codeFailure) { result.failures.push(details); result.checks.push({ id: 'platform:build', passed: false, details }); }
@@ -216,3 +217,4 @@ export async function verifyBriefboardPilot(args: {
   }
   return result;
 }
+
