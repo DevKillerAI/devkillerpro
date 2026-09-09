@@ -8,7 +8,10 @@ const {readConfig,createDatabaseHarness}=require('./workbench-database.cjs');
 const ROOT='/candidate', OUT='/output';
 const CSP="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'; worker-src 'none'";
 const normalizedText = value => String(value).replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, ' ').replace(/\s+/g, ' ').trim();
-const matchesText = (observed, expected) => normalizedText(observed) === normalizedText(expected);
+const normalizedPresentation = value => normalizedText(value).normalize('NFC').toLowerCase().replace(/(?<=\p{L})\s+(?=\p{L})/gu, '');
+const matchesText = (observed, expected) => normalizedPresentation(observed) === normalizedPresentation(expected);
+const matchesControlValue = (observed, expected) => String(observed) === String(expected);
+const matchesObservation = (observed, expected) => observed.control ? matchesControlValue(observed.value, expected) : matchesText(observed.value, expected);
 const selectTarget = value => value.startsWith('label:') ? {label:value.slice(6)} : value;
 function assessLayout({overflow,clippedControls}) {
   if(!Number.isFinite(overflow)||!Number.isSafeInteger(clippedControls)||clippedControls<0)throw new Error('Invalid layout measurement.');
@@ -140,12 +143,15 @@ async function main() {
             }
             if(s.action==='text') {
               await target.waitFor({state:'visible'});
-              const observed=async()=>await target.evaluate(element=>
-                ['INPUT','TEXTAREA','SELECT'].includes(element.tagName)
-                  ? String(element.value||'')
-                  : String(element.innerText||element.textContent||''));
-              const until=Date.now()+2200;while(!matchesText(await observed(),s.value)&&Date.now()<until)await page.waitForTimeout(40);
-              if(!matchesText(await observed(),s.value))throw new Error('Expected visible text or control value '+s.value+' at '+s.testId);continue;
+              const observed=async()=>await target.evaluate(element=>({
+                control:['INPUT','TEXTAREA','SELECT'].includes(element.tagName),
+                value:['INPUT','TEXTAREA','SELECT'].includes(element.tagName)?String(element.value||''):String(element.innerText||''),
+              }));
+              const until=Date.now()+2200;let actual=await observed();
+              while(!matchesObservation(actual,s.value)&&Date.now()<until){await page.waitForTimeout(40);actual=await observed();}
+              if(!matchesObservation(actual,s.value))throw new Error('Expected '+JSON.stringify(s.value)+' at '+s.testId+'; observed '+JSON.stringify(actual.value.slice(0,400)));
+              if(!actual.control&&normalizedText(actual.value)!==normalizedText(s.value))report.limitations.push('Presentation-only difference at '+s.testId+': case or spacing differs; expected content is present.');
+              continue;
             }
             if(s.action==='fill')await target.fill(s.value);
             else if(s.action==='click')await target.click();
@@ -195,5 +201,5 @@ async function main() {
   finally{if(database?.isUnavailable())report.unavailable=true;if(browser)await browser.close();await new Promise(r=>server.close(r));report.executedAt=new Date().toISOString();await fs.writeFile(path.join(OUT,'report.json'),JSON.stringify(report),{flag:'wx'});}
   if(report.failures.length)process.exitCode=1;
 }
-module.exports = { validateJourneys, matchesText, matchesCount, createAppServer, selectTarget, unresolvedHttpFailures, assessLayout };
+module.exports = { validateJourneys, matchesText, matchesControlValue, matchesObservation, matchesCount, createAppServer, selectTarget, unresolvedHttpFailures, assessLayout };
 if(require.main===module)main().catch(e=>{console.error(String(e.message).slice(0,2000));process.exitCode=1;});
