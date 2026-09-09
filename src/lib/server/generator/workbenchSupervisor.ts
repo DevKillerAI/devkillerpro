@@ -336,38 +336,7 @@ export async function runWorkbench(lease:PilotLease,signal:AbortSignal) {
   // Full-stack releases cannot bypass executed database or application checks.
   if(fullstack)assertFullstackRelease(report);
 
-  // Agile Lovable-style delivery: If the bundle successfully compiled (esbuild bundle exists)
-  // and core platform gates passed (build, typecheck, secrets isolation), do not discard the
-  // application over non-fatal journey assertion mismatches or resulting layout telemetry.
-  const buildCheck = report.checks.find(c => c.id === 'platform:build');
-  const typecheckCheck = report.checks.find(c => c.id === 'platform:typescript-typecheck');
-  const secretsCheck = report.checks.find(c => c.id === 'security:secrets-isolation');
-  const bundleOk = report.compiledFiles.length > 0 && buildCheck?.passed === true;
-  const syntaxOk = !typecheckCheck || typecheckCheck.passed === true;
-  const secretsOk = !secretsCheck || secretsCheck.passed === true;
-
-  if (report.status !== 'passed' && bundleOk && syntaxOk && secretsOk) {
-    const fatalFailures = report.failures.filter(f =>
-      f.includes('platform:build') || f.includes('TypeScript typecheck failed') || f.includes('security:secrets-isolation')
-    );
-    if (fatalFailures.length === 0) {
-      const journeyMismatches = [...report.failures];
-      report.limitations.push(...journeyMismatches.map(m => `Quality notice (advisory): ${m}`));
-      report.failures = [];
-      report.status = 'passed';
-      deliveryMode = 'partial';
-      report.checks = report.checks.map(check => {
-        if (!check.passed && (check.id.startsWith('journey:') || check.id.startsWith('requirement:') || check.id === 'platform:responsive-layout' || check.id === 'platform:browser-core')) {
-          return {...check, passed:true, details:check.details + ' (Delivered under agile preview mode; interactive refinement available).'};
-        }
-        return check;
-      });
-      await appendPilotEvent(lease, 'delivery.agile-promoted',
-        'Application bundle compiled cleanly. Promoting to live preview so you can interact with the app and refine it with the agent.',
-        { limitations: report.limitations, originalMismatches: journeyMismatches }
-      );
-    }
-  }
+  // Cosmetic findings are recorded as limitations by the trusted runner. Never rewrite a failed functional check into a pass.
 
   // If still failed, reject immediately with accurate diagnosis
   if(report.status!=='passed')throw new Error(`Checks ${report.status}. ${report.failures.join(' ').slice(0,1200)} No additional automatic attempts will run.`);

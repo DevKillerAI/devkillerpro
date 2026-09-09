@@ -28,3 +28,13 @@
 After updating worker source, restart the worker. After updating Next API code or public environment variables, build and restart/redeploy the corresponding application. Confirm service start/build timestamps are later than the installed patch. Do not infer deployment from a Git push alone.
 
 Never turn failed authorization, persistence, concurrency or functional checks into passes to produce a preview. Aesthetic judgment requires rendered review; no automatic score of 9/10 or 100% reliability is certified by these checks.
+
+## Final refinement and delivery policy
+
+- CSS refinement consumed six audited RAG chunks. Final accepted ClientPanel source is `e983ccfeecdcb6e167ee2a89d6bb6f04f1b1588faa3bd10c770e56d16e7d587d`, revision `session-read-recovery-1`. All executed checks passed. Total settled cost is USD 0.267671 across three provider calls; deterministic recovery added no provider call.
+- The CSS-only candidate first encountered one HTTP 401 on the initial client-list read; subsequent reads and database tests succeeded. Eight independent signup/read probes did not reproduce it. The exact upstream cause is not established. Recovery refreshes the session once and retries reads once, never writes; unresolved HTTP failures still fail verification.
+- Exact-host HTTPS availability is checked before returning a new preview address. Retired preview containers no longer prevent unrelated approved hosts from publishing.
+- Retrieval excludes canvas/creative-studio references for operational applications. Three actual operational queries each retrieved six eligible chunks without paid embeddings. Active retrieval remains lexical BM25, not semantic/hybrid search.
+- User priority is working delivery over cosmetic perfection. Runner layout checks now distinguish minor overflow (more than 2px and at most 16px, no clipped visible controls) as a refinement notice. Severe overflow and clipped visible controls block. Layout results are independent from functional journey results. Failed functional evidence is never rewritten into success by the old broad agile-promotion branch.
+- The 18 focused regression tests passed, including actual reload evidence for claimed local persistence, RAG provenance, network recovery, layout severity and full-stack failure retention. Publication-clone TypeScript check passed.
+- The refined approved HTTPS app was opened in the browser with an independent QA account; client creation and a linked task were exercised. These records belong only to the QA account. Full platform UI testing in the user's account still requires their active session; no password reset or impersonated session was used.

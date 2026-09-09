@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { assembleWorkbenchGrounding } from '../src/lib/server/generator/workbenchGrounding';
+import { assembleWorkbenchGrounding, groundingExclusions } from '../src/lib/server/generator/workbenchGrounding';
 import type { RetrievalTrace } from '../src/lib/server/rag/types';
 const hash = (text: string) => createHash('sha256').update(text).digest('hex');
 const trace = (): RetrievalTrace => ({ query: 'fixture', tenantId: 'devkiller', domains: [], retrievedAt: new Date().toISOString(),
@@ -32,3 +32,5 @@ test('grounding excludes corrupt, stale and unbound retrieval results', () => {
   assert.deepEqual(result.citations, []);
   assert.deepEqual(result.consumedChunks, []);
 });
+
+test('operational app grounding excludes specialized canvas references',()=>{assert.ok(groundingExclusions('client-operations').includes('creative-studio'));assert.ok(groundingExclusions('general-product').includes('canvas'));assert.deepEqual(groundingExclusions('creative-studio'),['platform-only']);});

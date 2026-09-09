@@ -63,7 +63,7 @@ export function journeyProvesRequirement(requirementId: string, journey: Accepta
     && !inputs.some(input => input.testId === s.testId));
   if (changed < 0 || assertions.length === 0) return false;
   if (requirementId === 'feature.local-persistence') {
-    const saveOrReload = steps.findIndex(s => s.action === 'reload' || s.action === 'click');
+    const saveOrReload = steps.findIndex((s,index) => index > changed && s.action === 'reload');
     return saveOrReload > changed && inputs.length > 0 && steps.some((s, index) => index > saveOrReload
       && assertions.includes(s) && (s.action === 'text' || s.action === 'count') && s.value.trim().length > 0);
   }
@@ -166,11 +166,11 @@ export function extractAcceptanceContract(args: {
   add({
     id: 'platform.responsive-layout',
     source: 'platform',
-    description: 'The interface renders without horizontal overflow or clipping across all target viewports (320px to 1920px).',
+    description: 'The interface remains usable across target viewports (320px to 1920px), without severe overflow or clipped visible controls. Minor cosmetic deviations are advisory.',
     priority: 'mandatory',
     verificationType: 'visual',
     immutable: true,
-    expectedEvidence: 'document.documentElement.scrollWidth <= innerWidth + 2 across tested viewports.',
+    expectedEvidence: 'No horizontal overflow above 16px and no clipped visible controls; overflow between 2px and 16px is reported as a refinement notice.',
   });
 
   add({

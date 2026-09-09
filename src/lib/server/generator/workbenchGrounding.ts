@@ -16,6 +16,7 @@ export type WorkbenchGrounding = Readonly<{
   backend?: 'postgresql'; phase?: 'build' | 'edit' | 'repair';
   consumedChunks?: readonly ConsumedKnowledgeChunk[]; textHash?: string;
 }>;
+export const groundingExclusions=(domain:string)=>domain==='creative-studio'?['platform-only']:['platform-only','creative-studio','canvas'];
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 
 /** The audit contains only the exact excerpts actually sent to the model. */
@@ -63,7 +64,7 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
     : [quality.domain, options.focus ?? '', 'React TypeScript atomic edits regression tests state validation'];
 
   const queryString = [brief, ...context].join('\n').slice(0, 32000);
-  const readiness=await retrieveKnowledge({query:queryString,tenantId:'devkiller',domains:['design','product','builder'],excludeTags:['platform-only'],limit:6,missionId,useEmbeddings:false,signal:options.signal});
+  const readiness=await retrieveKnowledge({query:queryString,tenantId:'devkiller',domains:['design','product','builder'],excludeTags:groundingExclusions(quality.domain),limit:6,missionId,useEmbeddings:false,signal:options.signal});
   if(readiness.candidateCount===0)throw new Error('The reviewed generation knowledge corpus is empty. Import and verify the RAG before starting a generation.');
   if(process.env.DEVKILLER_RAG_QUERY_EMBEDDINGS!=='true')return assembleWorkbenchGrounding(readiness,{phase});
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -99,7 +100,7 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
     // This is the shared reviewed platform corpus. Private tenant uploads are not queried.
     tenantId: 'devkiller',
     domains: ['design', 'product', 'builder'],
-    excludeTags: ['platform-only'],
+    excludeTags: groundingExclusions(quality.domain),
     limit: 6,
     missionId,
     useEmbeddings: Boolean(queryEmbedding),
@@ -110,6 +111,3 @@ export async function retrieveWorkbenchGrounding(brief: string, quality: Workben
 
   return assembleWorkbenchGrounding(trace, { phase });
 }
-
-
-

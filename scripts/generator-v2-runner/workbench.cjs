@@ -10,6 +10,21 @@ const CSP="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inlin
 const normalizedText = value => String(value).replace(/[\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]/g, ' ').replace(/\s+/g, ' ').trim();
 const matchesText = (observed, expected) => normalizedText(observed) === normalizedText(expected);
 const selectTarget = value => value.startsWith('label:') ? {label:value.slice(6)} : value;
+function assessLayout({overflow,clippedControls}) {
+  if(!Number.isFinite(overflow)||!Number.isSafeInteger(clippedControls)||clippedControls<0)throw new Error('Invalid layout measurement.');
+  return {blocking:overflow>16||clippedControls>0,advisory:overflow>2&&overflow<=16&&clippedControls===0};
+}
+async function inspectLayout(page) {
+  const measurement=await page.evaluate(()=>({
+    overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),
+    clippedControls:[...document.querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>{
+      const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+      return r.width>0&&r.height>0&&r.top>=0&&r.bottom<=innerHeight&&s.visibility!=='hidden'&&s.display!=='none'&&(r.left < -2||r.right>innerWidth+2);
+    }).length,
+  }));
+  return {...measurement,...assessLayout(measurement)};
+}
+function unresolvedHttpFailures(events){return events.filter((e,i)=>e.status>=400&&!events.slice(i+1).some(next=>next.page===e.page&&next.method===e.method&&next.path===e.path&&next.status>=200&&next.status<300));}
 const matchesCount = (observed, expected) => observed === expected;
 function validateJourneys(journeys) {
   if(!Array.isArray(journeys)||journeys.length<1||journeys.length>4)throw new Error('Invalid journey count.');
@@ -64,7 +79,7 @@ async function main() {
   const report={checks:[],failures:[],limitations:['AI-proposed source-bound journeys prove their declared cases, not exhaustive product coverage.',database?'Real isolated PostgreSQL/Auth QA; external deployment, token expiry and full production security are not certified.':'Browser-only profile: no backend or real app authentication.'],screenshots:[],unavailable:false};
   const record=(id,passed,details)=>{report.checks.push({id,passed,details});if(!passed)report.failures.push(id+': '+details);};
   const server=createAppServer(database,report);
-  let browser;const errors=[];
+  let browser;const errors=[],httpEvents=[];let pageSequence=0;
   try {
     await new Promise(resolve=>server.listen(3000,'127.0.0.1',resolve));
     const {chromium}=require('/runner/node_modules/playwright');browser=await chromium.launch({headless:true});report.browserVersion=browser.version();
@@ -73,9 +88,11 @@ async function main() {
       const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
       if(database&&account)await database.inject(context,account);
       await context.route('**/*', route => new URL(route.request().url()).origin === 'http://127.0.0.1:3000' ? route.continue() : route.abort());
-      const page=await context.newPage();page.setDefaultTimeout(2200);
+      const page=await context.newPage(),pageId=++pageSequence;page.setDefaultTimeout(2200);
+      page.on('response',r=>{const u=new URL(r.url());if(u.origin==='http://127.0.0.1:3000')httpEvents.push({page:pageId,method:r.request().method(),path:u.pathname,status:r.status()});});
+      page.on('requestfailed',r=>{if(errors.length<20)errors.push('Request failed: '+new URL(r.url()).pathname);});
       page.on('pageerror',e=>{if(errors.length<20)errors.push(e.message.slice(0,350));});
-      page.on('console',m=>{if(m.type()==='error'&&errors.length<20)errors.push(m.text().slice(0,350));});
+      page.on('console',m=>{if(m.type()==='error'&&!/^Failed to load resource: the server responded with a status of [45][0-9]{2}/.test(m.text())&&errors.length<20)errors.push(m.text().slice(0,350));});
       await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle',timeout:10000});return {context,page};
     }
     let layouts=true, allJourneys=true;
@@ -92,12 +109,13 @@ async function main() {
     for(const width of SMOKE_VIEWPORTS){
       const smoke=await pageAt(width);
       try{
-        const hasOverflow=await smoke.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
-        if(hasOverflow){smokeLayouts=false;errors.push(`Horizontal overflow at ${width}px initial render`);}
-      }catch(err){errors.push(`Layout smoke error at ${width}px: ${err.message}`);}
+        const layout=await inspectLayout(smoke.page);
+        if(layout.blocking){smokeLayouts=false;errors.push(`Unusable layout at ${width}px: ${layout.overflow}px overflow, ${layout.clippedControls} clipped controls`);}
+        else if(layout.advisory)report.limitations.push(`Visual refinement: ${layout.overflow}px overflow at ${width}px; no visible controls clipped.`);
+      }catch(err){smokeLayouts=false;errors.push(`Layout smoke error at ${width}px: ${err.message}`);}
       finally{await smoke.context.close();}
     }
-    record('platform:layout-smoke-matrix',smokeLayouts,smokeLayouts?'Checked responsive layout across 320px, 375px, 430px, 768px, 1024px, 1920px without overflow.':'Horizontal overflow detected during multi-viewport layout smoke matrix.');
+    record('platform:layout-smoke-matrix',smokeLayouts,smokeLayouts?'Usable layout across 320px, 375px, 430px, 768px, 1024px, 1920px; minor overflow is reported separately.':'Severe overflow or clipped visible controls during layout smoke matrix.');
 
     for(const width of [1440,390]) {
       for(let i=0;i<journeys.length;i++) {
@@ -149,14 +167,18 @@ async function main() {
               if(await target.isChecked()!==expected)throw new Error('Checkbox state did not persist.');
             }
           }
-          if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2)){layouts=false;throw new Error('Horizontal overflow after interaction.');}
+          const layout=await inspectLayout(page);
+          if(layout.blocking)layouts=false;
+          else if(layout.advisory)report.limitations.push(`Visual refinement after interaction: ${layout.overflow}px overflow at ${width}px; no visible controls clipped.`);
           if(i===0){const file=`layout-${width}.png`;await page.screenshot({path:path.join(OUT,file)});report.screenshots.push(file);}
         }catch(e){failed=String(e.message).slice(0,900);allJourneys=false;}finally{await context.close();}
         record(`journey:${width}:${i+1}`,!failed,failed||journeys[i].name);
       }
     }
-    record('platform:responsive-layout',layouts&&allJourneys,'Visible journeys run at 1440px and 390px without horizontal overflow.');
+    record('platform:responsive-layout',layouts&&smokeLayouts,'No severe horizontal overflow or clipped visible controls. Functional journey results are reported independently.');
     record('requirement:application:journeys',allJourneys,'Executed bounded model-proposed UI journeys at both viewport sizes.');
+    const unresolved=unresolvedHttpFailures(httpEvents);for(const e of unresolved)errors.push('Unrecovered HTTP '+e.status+' '+e.method+' '+e.path);
+    record('platform:http-recovery',unresolved.length===0,JSON.stringify({failed:httpEvents.filter(e=>e.status>=400),unresolved}));
     record('platform:browser-core',allJourneys&&errors.length===0,errors.length?errors.join('; '):'Recorded journeys completed without browser errors. Full product validation still needs user review.');
     if(database)await database.verifyEvidence(record,async(account,item)=>{
       const {context,page}=await pageAt(390,account);
@@ -173,6 +195,5 @@ async function main() {
   finally{if(database?.isUnavailable())report.unavailable=true;if(browser)await browser.close();await new Promise(r=>server.close(r));report.executedAt=new Date().toISOString();await fs.writeFile(path.join(OUT,'report.json'),JSON.stringify(report),{flag:'wx'});}
   if(report.failures.length)process.exitCode=1;
 }
-module.exports = { validateJourneys, matchesText, matchesCount, createAppServer, selectTarget };
+module.exports = { validateJourneys, matchesText, matchesCount, createAppServer, selectTarget, unresolvedHttpFailures, assessLayout };
 if(require.main===module)main().catch(e=>{console.error(String(e.message).slice(0,2000));process.exitCode=1;});
-

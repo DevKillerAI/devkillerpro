@@ -11,7 +11,9 @@ for file in sorted(root.glob('dkp-*.json')):
     if not re.fullmatch('[a-f0-9]{64}',key): raise RuntimeError('Invalid key')
     host='dkp-'+key[:24]+'.'+domain
     if r.get('host')!=host or file.name!='dkp-'+key[:24]+'.json': raise RuntimeError('Invalid host binding')
-    info=json.loads(subprocess.check_output(['docker','inspect','dk-v2-preview-'+key[:24]]))[0]
+    inspected=subprocess.run(['docker','inspect','dk-v2-preview-'+key[:24]],capture_output=True,text=True)
+    if inspected.returncode: continue  # Retired containers must not block unrelated approved apps.
+    info=json.loads(inspected.stdout)[0]
     if info['Id']!=r['id'] or info['Config']['Labels'].get('devkiller.v2.preview')!=key: raise RuntimeError('Container mismatch')
     if not info['HostConfig']['ReadonlyRootfs'] or not info['State']['Running']: continue
     blocks.append(host+' {\n  reverse_proxy 127.0.0.1:3010\n}\n')
